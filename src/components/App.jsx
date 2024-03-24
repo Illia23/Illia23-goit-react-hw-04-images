@@ -1,50 +1,20 @@
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import { getImages } from '../services/apiService';
+import React, { useState, useEffect } from 'react';
+import getImages from 'services/apiService';
 import Searchbar from './Searchbar/Searchbar';
-import { AppStyle } from './App.styled';
 import { ImageGallery } from './ImageGallery/ImageGallery';
+import Modal from 'components/Modal/Modal';
+import { Loader } from 'components/Loader/Loader';
 import { Button } from './Button/Button';
-import { Loader } from './Loader/Loader';
-import Modal from './Modal/Modal';
-import { useState, useEffect } from 'react';
-
-export const paramsForNotify = {
-  position: 'center-center',
-  timeout: 3000,
-  width: '400px',
-  fontSize: '24px',
-};
-
 const App = () => {
   const [images, setImages] = useState([]);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [totalImages, setTotal] = useState(0);
   const [isLoadMore, setIsLoadMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [url, setUrl] = useState('');
-  const [totalImages, setTotal] = useState(0);
   const [error, setError] = useState('');
 
-
-
-  const handleLoadMore = () => {
-    setPage(prevState => prevState + 1);
-  };
-
-  const handleSubmit = query => {
-    if (query === '') {
-      return;
-      }
-      setQuery(query);
-      setPage(1);
-      setUrl([]);
-  };
-
- const openModal = url => {
-    setUrl( url );
-  };
-
-  
   useEffect(() => {
     const fetchData = async () => {
       if (!query) return;
@@ -75,23 +45,37 @@ const App = () => {
 
     fetchData();
   }, [query, page]);
-  
 
+  const handleSubmit = query => {
+    if (query === '') return;
 
+    setQuery(query);
+    setImages([]);
+    setPage(1);
+    setTotal(0);
+  };
 
+  const openModal = url => {
+    setUrl(url);
+  };
+
+  const loadMore = () => {
+    setPage(prevPage => prevPage + 1);
+  };
 
   return (
-    <AppStyle>
-         <Searchbar onSubmit={handleSubmit} />
-         {isLoading && <Loader />}
+    <>
+      {isLoading && <Loader />}
+      <Searchbar onSubmit={handleSubmit} />
       <ImageGallery images={images} openModal={openModal} />
-         {isLoadMore && <Button onClick={() => handleLoadMore()} />}
-         {url && <Modal closeModal={openModal} url={url} />}
-       </AppStyle>
+      {isLoadMore && <Button onClick={loadMore}>Load more</Button>}
+      {url && <Modal closeModal={() => setUrl('')} url={url} />}
+    </>
   );
-}
+};
 
 export default App;
+
 // export class App extends Component {
 //   state = {
 //     images: [],
